@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: walletdata
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 7890123456Upet
+    ports:
+      - "5434:5432"  # Порт 5434 на хосте, чтобы соответствовать вашему application.yml
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spring_app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/walletdata
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 7890123456Upet
+      SPRING_LIQUIBASE_ENABLED: true
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/walletdata
+      SPRING_LIQUIBASE_USER: postgres
+      SPRING_LIQUIBASE_PASSWORD: 7890123456Upet
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

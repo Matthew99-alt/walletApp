@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: your_name
+      changes:
+        - createTable:
+            tableName: wallets
+            columns:
+              - column:
+                  name: wallet_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: operation_type
+                  type: VARCHAR(50)
+              - column:
+                  name: amount
+                  type: INTEGER
