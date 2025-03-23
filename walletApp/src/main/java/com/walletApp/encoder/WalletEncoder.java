@@ -7,13 +7,11 @@ import java.util.UUID;
 
 @Component
 public class WalletEncoder {
-    public String encodeUUID(UUID uuid){
-        return Base64.getUrlEncoder().encodeToString(uuid.toString().getBytes());
+    public String encodeUUID(UUID uuid) {
+        return uuid.toString();
     }
 
-    public UUID decodeUUID(String encodedUUID) {
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(encodedUUID);
-        String uuidString = new String(decodedBytes);
-        return UUID.fromString(uuidString);
+    public UUID decodeUUID(String uuidString) {
+        return UUID.fromString(uuidString);  
     }
 }
