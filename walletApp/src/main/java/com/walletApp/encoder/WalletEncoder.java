@@ -2,7 +2,6 @@ package com.walletApp.encoder;
 
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
 import java.util.UUID;
 
 @Component
@@ -12,6 +11,6 @@ public class WalletEncoder {
     }
 
     public UUID decodeUUID(String uuidString) {
-        return UUID.fromString(uuidString);  
+        return UUID.fromString(uuidString);
     }
 }
