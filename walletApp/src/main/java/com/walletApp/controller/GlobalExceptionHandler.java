@@ -6,51 +6,36 @@ import com.walletApp.exception.WalletNotFoundException;
 import com.walletApp.model.dto.ErrorDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
-    // Обработка OperationTypeNotFoundException
-    @ExceptionHandler(OperationTypeNotFoundException.class)
-    public ResponseEntity<?> handleOperationTypeNotFoundException(OperationTypeNotFoundException ex, WebRequest request) {
-        ErrorDTO errorDetails = new ErrorDTO(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+
+    @ExceptionHandler({OperationTypeNotFoundException.class, NotEnoughCashException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleOperationTypeNotFoundException(RuntimeException ex) {
+        return new ErrorDTO(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
     }
 
-    // Обработка WalletNotFoundException
-    @ExceptionHandler(WalletNotFoundException.class)
-    public ResponseEntity<?> handleWalletNotFoundException(WalletNotFoundException ex, WebRequest request) {
-        ErrorDTO errorDetails = new ErrorDTO(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+    @ExceptionHandler({WalletNotFoundException.class, EntityNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorDTO handleWalletNotFoundException(WalletNotFoundException ex) {
+        return new ErrorDTO(HttpStatus.NOT_FOUND.value(), ex.getMessage());
     }
 
-    // Обработка NotEnoughCashException
-    @ExceptionHandler(NotEnoughCashException.class)
-    public ResponseEntity<?> handleNotEnoughCashException(NotEnoughCashException ex, WebRequest request) {
-        ErrorDTO errorDetails = new ErrorDTO(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
-    }
-
-    // Обработка HttpMessageNotReadableException (например, неверный JSON)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
-        ErrorDTO errorDetails = new ErrorDTO(HttpStatus.BAD_REQUEST.value(), "Неверный формат JSON");
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return new ErrorDTO(HttpStatus.BAD_REQUEST.value(), "Неверный формат JSON");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
-        ErrorDTO errorDetails = new ErrorDTO(HttpStatus.BAD_REQUEST.value(), "Неверный формат UUID");
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleIllegalArgumentException(IllegalArgumentException ex) {
+        return new ErrorDTO(HttpStatus.BAD_REQUEST.value(), "Неверный формат UUID");
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException ex, WebRequest request) {
-        ErrorDTO errorDetails = new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Указанный кошелёк не найден");
-        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
-    }
 }

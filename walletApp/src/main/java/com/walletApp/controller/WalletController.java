@@ -2,10 +2,10 @@ package com.walletApp.controller;
 
 import com.walletApp.model.dto.WalletDTO;
 import com.walletApp.service.WalletService;
+import jakarta.validation.Valid; // валидировать нечего, пересмотри параметры валидации для DTO
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("api/v1")
@@ -14,12 +14,12 @@ public class WalletController {
 
     private final WalletService walletService;
 
-    @GetMapping("/")
-    public WalletDTO getAWallet(@RequestParam("id") String id) {
-        return walletService.getWallet(id);
+    @GetMapping("/{wallet_uuid}")
+    public WalletDTO getAWallet(@PathVariable("wallet_uuid") String walletUuid) {
+        return walletService.getWallet(walletUuid);
     }
 
-    @PostMapping("/save")
+    @PostMapping("/")
     public WalletDTO saveAWallet(@RequestBody @Valid WalletDTO walletDTO) {
         return walletService.saveWallet(walletDTO);
     }

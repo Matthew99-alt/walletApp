@@ -6,6 +6,7 @@ import java.util.UUID;
 
 @Component
 public class WalletEncoder {
+
     public String encodeUUID(UUID uuid) {
         return uuid.toString();
     }
@@ -13,4 +14,5 @@ public class WalletEncoder {
     public UUID decodeUUID(String uuidString) {
         return UUID.fromString(uuidString);
     }
+
 }

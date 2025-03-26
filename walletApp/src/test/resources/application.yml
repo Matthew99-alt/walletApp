@@ -1,0 +1,10 @@
+spring:
+  docker:
+    compose:
+      file: walletApp/docker-compose.yml
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    change-log: classpath:/db.changelog/db.changelog-master.yml

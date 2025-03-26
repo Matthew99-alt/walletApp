@@ -12,7 +12,7 @@ public class WalletMapper {
 
     private final WalletEncoder encoder;
 
-    public Wallet makeAWallet(WalletDTO walletDTO) {
+    public Wallet makeWallet(WalletDTO walletDTO) {
         Wallet wallet = new Wallet();
 
         wallet.setWalletId(walletDTO.getWalletId() != null ? encoder.decodeUUID(walletDTO.getWalletId()) : null);
@@ -22,7 +22,7 @@ public class WalletMapper {
         return wallet;
     }
 
-    public WalletDTO makeAWalletDTO(Wallet wallet) {
+    public WalletDTO makeWalletDTO(Wallet wallet) {
         WalletDTO walletDTO = new WalletDTO();
 
         walletDTO.setWalletId(encoder.encodeUUID(wallet.getWalletId()));

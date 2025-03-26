@@ -1,5 +1,6 @@
 package com.walletApp.service;
 
+import com.walletApp.config.PostgresContainer;
 import com.walletApp.encoder.WalletEncoder;
 import com.walletApp.enums.OperationTypes;
 import com.walletApp.model.entity.Wallet;
@@ -13,16 +14,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import java.util.UUID;
 
-@SpringBootTest
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Transactional
-public class TestWalletController {
+public class TestWalletController extends PostgresContainer {
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,22 +35,26 @@ public class TestWalletController {
     @Autowired
     private WalletRepository walletRepository;
 
-    private String testWalletId;
-
     @BeforeEach
     void setUp() {
         walletRepository.deleteAll();
+    }
+
+    private Wallet createWallet() {
         Wallet wallet = new Wallet();
         wallet.setWalletId(UUID.randomUUID());
         wallet.setOperationType(OperationTypes.DEPOSIT);
         wallet.setAmount(5000);
         walletRepository.save(wallet);
 
-        testWalletId = walletEncoder.encodeUUID(wallet.getWalletId());
+        return wallet;
     }
 
     @Test
     void getWallet_ShouldReturnWallet_WhenExists() throws Exception {
+        Wallet wallet = createWallet();
+        String testWalletId = walletEncoder.encodeUUID(wallet.getWalletId());
+
         mockMvc.perform(get("/api/v1/")
                         .param("id", testWalletId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -90,6 +96,9 @@ public class TestWalletController {
 
     @Test
     void depositForAnExistingWallet() throws Exception {
+        Wallet wallet = createWallet();
+        String testWalletId = walletEncoder.encodeUUID(wallet.getWalletId());
+
         String requestBody = "{\n" +
                 "  \"walletId\":\"" + testWalletId + "\",\n" +
                 "  \"operationType\": \"DEPOSIT\",\n" +
@@ -158,6 +167,9 @@ public class TestWalletController {
 
     @Test
     void withdrawForAnExistingWallet() throws Exception {
+        Wallet wallet = createWallet();
+        String testWalletId = walletEncoder.encodeUUID(wallet.getWalletId());
+
         String requestBody = "{\n" +
                 "  \"walletId\":\"" + testWalletId + "\",\n" +
                 "  \"operationType\": \"WITHDRAW\",\n" +
@@ -175,6 +187,9 @@ public class TestWalletController {
 
     @Test
     void notEnoughCashExceptionTest() throws Exception {
+        Wallet wallet = createWallet();
+        String testWalletId = walletEncoder.encodeUUID(wallet.getWalletId());
+
         String requestBody = "{\n" +
                 "  \"walletId\":\"" + testWalletId + "\",\n" +
                 "  \"operationType\": \"WITHDRAW\",\n" +

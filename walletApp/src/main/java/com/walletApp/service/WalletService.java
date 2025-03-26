@@ -14,30 +14,54 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class WalletService {
+
     private final WalletRepository walletRepository;
-
     private final WalletMapper walletMapper;
-
     private final WalletEncoder walletEncoder;
 
     public WalletDTO getWallet(String UUID) {
-        return walletMapper.makeAWalletDTO(
+        return walletMapper.makeWalletDTO(
                 walletRepository.getReferenceById(walletEncoder.decodeUUID(UUID))
         );
     }
 
     public WalletDTO saveWallet(WalletDTO walletDTO) {
-        OperationTypes[] operationTypes = OperationTypes.values();
-        List<OperationTypes> operationTypeList = Arrays.asList(operationTypes);
+        List<OperationTypes> operationTypeList = Arrays.asList(OperationTypes.values());
         UUID walletId = walletEncoder.decodeUUID(walletDTO.getWalletId());
-        Optional<Wallet> existingWallet = walletRepository.findById(walletId);
 
+        validateWalletDto(walletDTO, operationTypeList, walletId);
+
+        //TODO: Optional посмотреть еще раз
+        Wallet existingWallet = walletRepository.findById(walletId).orElse(createNewWallet(walletDTO));
+
+        //DEPOSIT и WITHDRAW позволяют работать сращу с деньгами, причем!!! на кредитном кошельке сразу есть деньги!! а на депозитном нет!
+        if (walletDTO.getOperationType() == OperationTypes.DEPOSIT) {
+            existingWallet.setAmount(existingWallet.getAmount() + walletDTO.getAmount());
+        }
+        if (walletDTO.getOperationType() == OperationTypes.WITHDRAW) {
+            if (walletDTO.getAmount() > existingWallet.getAmount()) {
+                throw new NotEnoughCashException("Недостаточно средств");
+            }
+            existingWallet.setAmount(existingWallet.getAmount() - walletDTO.getAmount());
+        }
+        walletRepository.save(existingWallet);
+
+        return walletMapper.makeWalletDTO(existingWallet);
+    }
+
+    //TODO: либо создавать, но что тогда с балансом??
+    //TODO: либо просто ругаться
+    private Wallet createNewWallet(WalletDTO walletDTO) {
+        return walletRepository.save(walletMapper.makeWallet(walletDTO));
+    }
+
+
+    private void validateWalletDto(WalletDTO walletDTO, List<OperationTypes> operationTypeList, UUID walletId) {
         if (!operationTypeList.contains(walletDTO.getOperationType())) {
             throw new OperationTypeNotFoundException("Указанной операции нет в списке");
         }
@@ -49,27 +73,12 @@ public class WalletService {
 
         if (walletRepository.findById(walletId).isEmpty() &&
                 walletDTO.getOperationType() == OperationTypes.DEPOSIT) {
-            walletRepository.save(walletMapper.makeAWallet(walletDTO));
+            walletRepository.save(walletMapper.makeWallet(walletDTO));
         }
 
         if (walletDTO.getAmount() < 0) {
             throw new NotEnoughCashException("Баланс кошелька не может быть отрицательным");
         }
-
-        if (existingWallet.isPresent()) {
-            Wallet wallet = existingWallet.get();
-            if (walletDTO.getOperationType() == OperationTypes.DEPOSIT) {
-                wallet.setAmount(wallet.getAmount() + walletDTO.getAmount());
-            }
-            if (walletDTO.getOperationType() == OperationTypes.WITHDRAW) {
-                if (walletDTO.getAmount() > wallet.getAmount()) {
-                    throw new NotEnoughCashException("Недостаточно средств");
-                }
-                wallet.setAmount(wallet.getAmount() - walletDTO.getAmount());
-            }
-            walletRepository.save(wallet);
-        }
-        return walletMapper.makeAWalletDTO(walletRepository.findById(walletId).get());
     }
 
 }
